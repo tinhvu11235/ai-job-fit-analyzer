@@ -5,10 +5,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "AI Job Fit Analyzer API"
+    app_name: str = "CV Fit Analyst Agent API"
     environment: str = Field(default="development", alias="ENV")
-    openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
-    openai_model: str = Field(default="gpt-5.5", alias="OPENAI_MODEL")
+    gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
+    gemini_model: str = Field(default="gemini-3.5-flash", alias="GEMINI_MODEL")
     app_api_key: str | None = Field(default=None, alias="APP_API_KEY")
     allowed_origins: str = Field(default="*", alias="ALLOWED_ORIGINS")
     request_timeout_seconds: float = Field(default=60.0, alias="REQUEST_TIMEOUT_SECONDS")

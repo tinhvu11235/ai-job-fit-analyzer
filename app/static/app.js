@@ -7,6 +7,8 @@ const accessCode = document.querySelector("#access-code");
 const outputLanguage = document.querySelector("#output-language");
 const userPreferences = document.querySelector("#user-preferences");
 const analyzeButton = document.querySelector("#analyze-button");
+const analyzeButtonLabel = document.querySelector("#analyze-button .button-label");
+const analyzeButtonIcon = document.querySelector("#analyze-button .button-icon");
 const clearButton = document.querySelector("#clear-button");
 const fileStatus = document.querySelector("#file-status");
 const modeChip = document.querySelector("#mode-chip");
@@ -50,8 +52,50 @@ function headers(json = true) {
   return value;
 }
 
-function showAlert(message) {
-  alertBox.textContent = message;
+function normalizeErrorDetail(detail) {
+  if (detail && typeof detail === "object" && !Array.isArray(detail)) {
+    return {
+      title: detail.title || "Không thể hoàn tất yêu cầu",
+      message: detail.message || JSON.stringify(detail),
+      actions: detail.actions || [],
+    };
+  }
+
+  const message = String(detail || "Không thể phân tích lúc này.");
+  const normalizedMessage = message.toLowerCase();
+  if (
+    message.includes("insufficient_quota") ||
+    normalizedMessage.includes("exceeded your current quota") ||
+    normalizedMessage.includes("gemini") && (normalizedMessage.includes("quota") || normalizedMessage.includes("rate"))
+  ) {
+    return {
+      title: "Gemini đang hết quota hoặc bị giới hạn tốc độ",
+      message: "API key Gemini hiện tại đã chạm giới hạn free tier/rate limit hoặc chưa bật billing cho mức dùng cao hơn.",
+      actions: [
+        "Kiểm tra quota/rate limit của Gemini API trong Google AI Studio hoặc Google Cloud.",
+        "Giảm PUBLIC_DEMO_DAILY_LIMIT nếu đang mở demo công khai.",
+        "Chờ quota free tier reset hoặc nâng cấp billing nếu cần dùng nhiều hơn.",
+      ],
+    };
+  }
+
+  return {
+    title: "Không thể phân tích",
+    message,
+    actions: [],
+  };
+}
+
+function showAlert(detail) {
+  const error = normalizeErrorDetail(detail);
+  const actions = error.actions?.length
+    ? `<ul>${error.actions.map((action) => `<li>${escapeHtml(action)}</li>`).join("")}</ul>`
+    : "";
+  alertBox.innerHTML = `
+    <strong>${escapeHtml(error.title)}</strong>
+    <span>${escapeHtml(error.message)}</span>
+    ${actions}
+  `;
   alertBox.classList.remove("is-hidden");
 }
 
@@ -62,7 +106,9 @@ function clearAlert() {
 
 function setBusy(isBusy) {
   analyzeButton.disabled = isBusy;
-  analyzeButton.textContent = isBusy ? "Dang phan tich..." : "Phan tich";
+  analyzeButton.classList.toggle("is-loading", isBusy);
+  analyzeButtonLabel.textContent = isBusy ? "Đang phân tích..." : "Phân tích";
+  analyzeButtonIcon.textContent = isBusy ? "" : "→";
 }
 
 function escapeHtml(value) {
@@ -78,7 +124,13 @@ async function readError(response) {
   try {
     const body = await response.json();
     if (Array.isArray(body.detail)) {
-      return body.detail.map((item) => item.msg || JSON.stringify(item)).join("; ");
+      return {
+        title: "Dữ liệu chưa hợp lệ",
+        message: body.detail.map((item) => item.msg || JSON.stringify(item)).join("; "),
+      };
+    }
+    if (body.detail && typeof body.detail === "object") {
+      return body.detail;
     }
     return body.detail || body.message || response.statusText;
   } catch {
@@ -118,7 +170,7 @@ function renderEvidence(items, emptyText, tone) {
 
 function renderGaps(items) {
   if (!items || items.length === 0) {
-    return itemHtml("Chua thay khoang trong lon", "", "");
+    return itemHtml("Chưa thấy khoảng trống lớn", "", "");
   }
   return items
     .map((item) => {
@@ -129,12 +181,12 @@ function renderGaps(items) {
 
 function renderScoreBreakdown(breakdown) {
   const labels = {
-    must_have_technical_skills: "Ky nang bat buoc",
-    relevant_experience: "Kinh nghiem lien quan",
-    responsibility_alignment: "Trach nhiem cong viec",
-    seniority_fit: "Cap bac",
-    domain_fit: "Linh vuc",
-    user_preferences_fit: "Uu tien ca nhan",
+    must_have_technical_skills: "Kỹ năng bắt buộc",
+    relevant_experience: "Kinh nghiệm liên quan",
+    responsibility_alignment: "Trách nhiệm công việc",
+    seniority_fit: "Cấp bậc",
+    domain_fit: "Lĩnh vực",
+    user_preferences_fit: "Ưu tiên cá nhân",
   };
 
   scoreBreakdown.innerHTML = Object.entries(labels)
@@ -150,6 +202,15 @@ function renderScoreBreakdown(breakdown) {
     .join("");
 }
 
+function recommendationLabel(value) {
+  const labels = {
+    "Apply Now": "Nên ứng tuyển",
+    Maybe: "Cân nhắc",
+    "Not Recommended": "Chưa nên ứng tuyển",
+  };
+  return labels[value] || value || "Cân nhắc";
+}
+
 function renderResult(payload) {
   latestResult = payload;
   const analysis = payload.analysis;
@@ -157,10 +218,10 @@ function renderResult(payload) {
 
   emptyState.classList.add("is-hidden");
   resultContent.classList.remove("is-hidden");
-  resultTitle.textContent = payload.normalized_job_description?.job_title || "Ket qua phan tich";
+  resultTitle.textContent = payload.normalized_job_description?.job_title || "Kết quả phân tích";
   scoreRing.style.setProperty("--score", score);
   scoreValue.textContent = score;
-  recommendation.textContent = analysis.recommendation || "Maybe";
+  recommendation.textContent = recommendationLabel(analysis.recommendation);
   recommendation.className = "recommendation";
   if (analysis.recommendation === "Apply Now") {
     recommendation.classList.add("apply");
@@ -173,16 +234,16 @@ function renderResult(payload) {
   renderScoreBreakdown(analysis.score_breakdown);
 
   matchesPanel.innerHTML = [
-    renderEvidence(analysis.strong_matches, "Chua co diem phu hop manh", "strong"),
-    renderEvidence(analysis.partial_matches, "Chua co diem phu hop mot phan", "partial"),
+    renderEvidence(analysis.strong_matches, "Chưa có điểm phù hợp mạnh", "strong"),
+    renderEvidence(analysis.partial_matches, "Chưa có điểm phù hợp một phần", "partial"),
   ].join("");
   gapsPanel.innerHTML = renderGaps(analysis.missing_or_weak_skills);
   rewritePanel.innerHTML = [
-    listHtml(analysis.cv_adjustment_suggestions?.what_to_emphasize, "Chua co diem can nhan manh"),
-    listHtml(analysis.rewritten_cv_bullet_points, "Chua co bullet goi y"),
-    listHtml(analysis.suggested_learning_or_preparation_areas, "Chua co muc can chuan bi"),
+    listHtml(analysis.cv_adjustment_suggestions?.what_to_emphasize, "Chưa có điểm cần nhấn mạnh"),
+    listHtml(analysis.rewritten_cv_bullet_points, "Chưa có bullet gợi ý"),
+    listHtml(analysis.suggested_learning_or_preparation_areas, "Chưa có mục cần chuẩn bị"),
   ].join("");
-  interviewPanel.innerHTML = listHtml(analysis.interview_questions, "Chua co cau hoi phong van");
+  interviewPanel.innerHTML = listHtml(analysis.interview_questions, "Chưa có câu hỏi phỏng vấn");
   copySummary.disabled = false;
   downloadJson.disabled = false;
 }
@@ -190,18 +251,18 @@ function renderResult(payload) {
 async function uploadCvFile(file) {
   const data = new FormData();
   data.append("file", file);
-  fileStatus.textContent = "Dang doc tep...";
+  fileStatus.textContent = "Đang đọc tệp...";
   const response = await fetch(endpoint("/files/extract"), {
     method: "POST",
     headers: headers(false),
     body: data,
   });
   if (!response.ok) {
-    throw new Error(await readError(response));
+    throw await readError(response);
   }
   const extracted = await response.json();
   cvText.value = extracted.text || "";
-  fileStatus.textContent = `${extracted.filename}: ${extracted.character_count} ky tu`;
+  fileStatus.textContent = `${extracted.filename}: ${extracted.character_count} ký tự`;
   if (extracted.warnings?.length) {
     fileStatus.textContent += ` (${extracted.warnings.join("; ")})`;
   }
@@ -240,12 +301,12 @@ cvFile.addEventListener("change", async () => {
     await uploadCvFile(file);
   } catch (error) {
     fileStatus.textContent = "";
-    showAlert(error.message);
+    showAlert(error.message || error);
   }
 });
 
 accessCode.addEventListener("input", () => {
-  modeChip.textContent = accessCode.value.trim() ? "Private" : "Demo";
+  modeChip.textContent = accessCode.value.trim() ? "Riêng tư" : "Demo";
 });
 
 form.addEventListener("submit", async (event) => {
@@ -269,11 +330,11 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      throw new Error(await readError(response));
+      throw await readError(response);
     }
     renderResult(await response.json());
   } catch (error) {
-    showAlert(error.message || "Khong the phan tich luc nay.");
+    showAlert(error.message || error);
   } finally {
     setBusy(false);
   }
@@ -286,7 +347,7 @@ clearButton.addEventListener("click", () => {
   clearAlert();
   resultContent.classList.add("is-hidden");
   emptyState.classList.remove("is-hidden");
-  resultTitle.textContent = "Chua co phan tich";
+  resultTitle.textContent = "Chưa có phân tích";
   copySummary.disabled = true;
   downloadJson.disabled = true;
   modeChip.textContent = "Demo";

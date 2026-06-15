@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ai-job-fit-analyzer-api
+    name: cv-fit-analyst-agent-api
     runtime: docker
     plan: free
     region: singapore
@@ -8,8 +8,8 @@ services:
     envVars:
       - key: ENV
         value: production
-      - key: OPENAI_MODEL
-        value: gpt-5.5
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
       - key: RATE_LIMIT_PER_MINUTE
         value: 30
       - key: PUBLIC_DEMO_ENABLED
@@ -18,7 +18,7 @@ services:
         value: 10
       - key: DEMO_MAX_INPUT_CHARS
         value: 12000
-      - key: OPENAI_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
       - key: APP_API_KEY
         sync: false

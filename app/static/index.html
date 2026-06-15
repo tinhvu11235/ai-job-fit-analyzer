@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Job Fit Analyzer</title>
+    <title>CV Fit Analyst Agent</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="/" aria-label="AI Job Fit Analyzer">
-        <span class="brand-mark">JF</span>
+      <a class="brand" href="/" aria-label="CV Fit Analyst Agent">
+        <span class="brand-mark">CV</span>
         <span>
-          <strong>AI Job Fit Analyzer</strong>
-          <small>CV x Job Description</small>
+          <strong>CV Fit Analyst Agent</strong>
+          <small>Phân tích CV theo mô tả công việc</small>
         </span>
       </a>
-      <nav class="top-actions" aria-label="Lien ket nhanh">
-        <a href="/docs">API Docs</a>
-        <a href="/health">Health</a>
+      <nav class="top-actions" aria-label="Liên kết nhanh">
+        <a href="/docs">Tài liệu API</a>
+        <a href="/health">Trạng thái</a>
       </nav>
     </header>
 
@@ -25,8 +25,8 @@
       <section class="input-panel" aria-labelledby="form-title">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Public beta</p>
-            <h1 id="form-title">Phan tich do phu hop CV</h1>
+            <p class="eyebrow">Bản dùng thử</p>
+            <h1 id="form-title">Phân tích độ phù hợp CV</h1>
           </div>
           <span class="status-chip" id="mode-chip">Demo</span>
         </div>
@@ -34,55 +34,58 @@
         <form id="analysis-form" class="analysis-form">
           <div class="field-group">
             <div class="field-heading">
-              <label for="cv-text">CV</label>
-              <label class="file-button" for="cv-file">Tai tep</label>
+              <label for="cv-text">CV ứng viên</label>
+              <label class="file-button" for="cv-file">
+                <span aria-hidden="true">↑</span>
+                Tải tệp
+              </label>
               <input id="cv-file" type="file" accept=".txt,.pdf,.docx" />
             </div>
-            <textarea id="cv-text" name="cv_text" required minlength="20" spellcheck="false" placeholder="Dan noi dung CV vao day"></textarea>
+            <textarea id="cv-text" name="cv_text" required minlength="20" spellcheck="false" placeholder="Dán nội dung CV vào đây"></textarea>
             <p class="field-note" id="file-status"></p>
           </div>
 
           <div class="field-group">
             <div class="field-heading">
-              <label for="jd-text">Job Description</label>
-              <div class="segmented" role="tablist" aria-label="Nguon JD">
-                <button type="button" class="segment is-active" data-mode="text">Text</button>
-                <button type="button" class="segment" data-mode="url">URL</button>
+              <label for="jd-text">Mô tả công việc</label>
+              <div class="segmented" role="tablist" aria-label="Nguồn mô tả công việc">
+                <button type="button" class="segment is-active" data-mode="text">Nội dung</button>
+                <button type="button" class="segment" data-mode="url">Liên kết</button>
               </div>
             </div>
-            <textarea id="jd-text" name="job_description" required spellcheck="false" placeholder="Dan JD vao day"></textarea>
+            <textarea id="jd-text" name="job_description" required spellcheck="false" placeholder="Dán mô tả công việc vào đây"></textarea>
             <input id="jd-url" class="is-hidden" name="job_url" type="url" placeholder="https://..." />
           </div>
 
           <div class="grid-two">
             <label class="field">
-              <span>Ngon ngu ket qua</span>
+              <span>Ngôn ngữ kết quả</span>
               <select id="output-language" name="output_language">
-                <option value="vi">Tieng Viet</option>
+                <option value="vi">Tiếng Việt</option>
                 <option value="en">English</option>
               </select>
             </label>
             <label class="field">
-              <span>Access code</span>
-              <input id="access-code" type="password" autocomplete="off" placeholder="De trong neu dung demo" />
+              <span>Mã truy cập</span>
+              <input id="access-code" type="password" autocomplete="off" placeholder="Để trống nếu dùng demo" />
             </label>
           </div>
 
           <label class="field">
-            <span>Uu tien ca nhan</span>
-            <input id="user-preferences" type="text" placeholder="Remote, salary, domain, location..." />
+            <span>Ưu tiên cá nhân</span>
+            <input id="user-preferences" type="text" placeholder="Remote, mức lương, lĩnh vực, địa điểm..." />
           </label>
 
           <div class="privacy-line">
-            Ban demo khong luu CV/JD vao co so du lieu. Ket qua chi mang tinh tu van.
+            Bản demo không lưu CV/JD vào cơ sở dữ liệu. Kết quả chỉ mang tính tư vấn.
           </div>
 
           <div class="form-actions">
             <button class="primary-button" id="analyze-button" type="submit">
-              <span class="button-icon" aria-hidden="true">+</span>
-              Phan tich
+              <span class="button-icon" aria-hidden="true">→</span>
+              <span class="button-label">Phân tích</span>
             </button>
-            <button class="ghost-button" id="clear-button" type="button">Xoa</button>
+            <button class="ghost-button" id="clear-button" type="button">Xóa nội dung</button>
           </div>
         </form>
       </section>
@@ -90,18 +93,18 @@
       <section class="results-panel" aria-live="polite">
         <div class="result-toolbar">
           <div>
-            <p class="eyebrow">Ket qua</p>
-            <h2 id="result-title">Chua co phan tich</h2>
+            <p class="eyebrow">Kết quả</p>
+            <h2 id="result-title">Chưa có phân tích</h2>
           </div>
           <div class="toolbar-actions">
-            <button class="icon-button" id="copy-summary" type="button" title="Sao chep tom tat" disabled>C</button>
-            <button class="icon-button" id="download-json" type="button" title="Tai JSON" disabled>D</button>
+            <button class="icon-button" id="copy-summary" type="button" title="Sao chép tóm tắt" disabled>⧉</button>
+            <button class="icon-button" id="download-json" type="button" title="Tải JSON" disabled>↓</button>
           </div>
         </div>
 
         <div class="empty-state" id="empty-state">
           <div class="empty-score">--</div>
-          <p>Dien CV va JD de bat dau.</p>
+          <p>Nhập CV và mô tả công việc để xem phân tích.</p>
         </div>
 
         <div class="result-content is-hidden" id="result-content">
@@ -118,11 +121,11 @@
 
           <div class="metric-grid" id="score-breakdown"></div>
 
-          <div class="tabs" role="tablist" aria-label="Nhom ket qua">
-            <button class="tab is-active" type="button" data-tab="matches">Phu hop</button>
-            <button class="tab" type="button" data-tab="gaps">Khoang trong</button>
-            <button class="tab" type="button" data-tab="rewrite">Sua CV</button>
-            <button class="tab" type="button" data-tab="interview">Phong van</button>
+          <div class="tabs" role="tablist" aria-label="Nhóm kết quả">
+            <button class="tab is-active" type="button" data-tab="matches">Phù hợp</button>
+            <button class="tab" type="button" data-tab="gaps">Khoảng trống</button>
+            <button class="tab" type="button" data-tab="rewrite">Sửa CV</button>
+            <button class="tab" type="button" data-tab="interview">Phỏng vấn</button>
           </div>
 
           <div class="tab-panel" id="matches-panel"></div>

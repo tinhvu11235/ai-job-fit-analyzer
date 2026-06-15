@@ -1,7 +1,7 @@
 from app.prompts import FIT_ANALYZER_SYSTEM_PROMPT
 from app.schemas import AnalyzeFullRequest, AnalyzeFullResponse, AnalyzeRequest, FitAnalysisResponse, JDNormalizeRequest
 from app.services.jd_normalizer import normalize_jd
-from app.services.openai_client import parse_with_openai
+from app.services.gemini_client import parse_with_gemini
 from app.services.source_loader import clean_text, ensure_text_within_limit
 from starlette.concurrency import run_in_threadpool
 
@@ -28,7 +28,7 @@ based only on evidence present in the CV. If a requirement has no evidence, mark
 missing instead of implying the candidate has it.
 """
 
-    return parse_with_openai(
+    return parse_with_gemini(
         system_prompt=FIT_ANALYZER_SYSTEM_PROMPT,
         user_prompt=user_prompt,
         output_model=FitAnalysisResponse,

@@ -1,6 +1,6 @@
-# AI Job Fit Analyzer API
+# CV Fit Analyst Agent API
 
-FastAPI backend for normalizing job descriptions and analyzing candidate CV fit using OpenAI structured outputs.
+FastAPI backend for normalizing job descriptions and analyzing candidate CV fit using Gemini structured outputs.
 
 ## Features
 
@@ -25,7 +25,8 @@ copy .env.example .env
 Edit `.env` and set:
 
 ```bash
-OPENAI_API_KEY=sk-your-key
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-3.5-flash
 APP_API_KEY=your-client-api-key
 PUBLIC_DEMO_ENABLED=false
 PUBLIC_DEMO_DAILY_LIMIT=10
@@ -113,9 +114,9 @@ For step-by-step local, Render, and Hugging Face Spaces instructions, see [`DEPL
 2. In Render, create a new Web Service from the repo.
 3. Select Docker runtime, or use the included `render.yaml` blueprint.
 4. Set environment variables:
-   - `OPENAI_API_KEY`
+   - `GEMINI_API_KEY`
    - `APP_API_KEY`
-   - `OPENAI_MODEL`
+   - `GEMINI_MODEL`
    - `ALLOWED_ORIGINS`
    - `PUBLIC_DEMO_ENABLED`
    - `PUBLIC_DEMO_DAILY_LIMIT`
@@ -128,7 +129,7 @@ The Dockerfile starts the app with:
 uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}
 ```
 
-For a public beta, the included `render.yaml` enables public demo mode with a small daily quota. Keep this quota low until you know your OpenAI cost per analysis.
+For a public beta, the included `render.yaml` enables public demo mode with a small daily quota. Keep this quota low because Gemini free tier still has rate limits.
 
 ## Free Deployment Options
 
@@ -137,7 +138,9 @@ Recommended MVP path:
 - Render Free Web Service: simplest for this repo because Docker and `render.yaml` are already included. Free services can spin down after inactivity, so the first request after idle can be slow.
 - Hugging Face Spaces with Docker: good for public AI demos and can run FastAPI in a Docker Space, but the app must listen on the Space port and should not rely on local disk persistence.
 
-Hosting can be free, but OpenAI API usage is not free unless your OpenAI account has trial credits. Use public demo quotas, rate limits, and monitoring before sharing widely.
+Hosting can be free, and Gemini API has a free tier for developers and small projects, but free usage still has model access and rate-limit constraints. Use public demo quotas, rate limits, and monitoring before sharing widely.
+
+If you see a Gemini quota/rate-limit error, check the Gemini API key, free tier limits, and billing/quota settings for the project that owns `GEMINI_API_KEY`; Render cannot solve that part. See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the checklist.
 
 ## Notes
 

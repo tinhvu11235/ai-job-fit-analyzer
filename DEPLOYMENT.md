@@ -2,6 +2,8 @@
 
 This project can run as one service: FastAPI serves both the web UI and the API.
 
+The model provider is Gemini API through the Google GenAI SDK.
+
 ## Option 1: Use It On Your Own Computer
 
 Use this when only you need to test the web interface.
@@ -10,7 +12,8 @@ Use this when only you need to test the web interface.
 2. Set at least:
 
 ```bash
-OPENAI_API_KEY=sk-your-key
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-3.5-flash
 APP_API_KEY=your-private-access-code
 PUBLIC_DEMO_ENABLED=false
 ```
@@ -43,9 +46,9 @@ https://your-service-name.onrender.com/
 4. Set environment variables:
 
 ```bash
-OPENAI_API_KEY=sk-your-key
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-3.5-flash
 APP_API_KEY=your-private-access-code
-OPENAI_MODEL=gpt-5.5
 PUBLIC_DEMO_ENABLED=true
 PUBLIC_DEMO_DAILY_LIMIT=10
 DEMO_MAX_INPUT_CHARS=12000
@@ -61,7 +64,7 @@ ALLOWED_ORIGINS=*
 
 6. After deploy finishes, open the Render URL. The root page `/` is the web UI.
 
-Render free services can sleep after inactivity, so the first visit after idle may take about a minute. Keep `PUBLIC_DEMO_DAILY_LIMIT` low until you know your OpenAI cost per run.
+Render free services can sleep after inactivity, so the first visit after idle may take about a minute. Keep `PUBLIC_DEMO_DAILY_LIMIT` low because Gemini free tier has rate limits.
 
 ## Option 3: Deploy To Hugging Face Spaces
 
@@ -73,7 +76,7 @@ Use this when you want an AI-demo-style public page. Docker Spaces can run FastA
 
 ```yaml
 ---
-title: AI Job Fit Analyzer
+title: CV Fit Analyst Agent
 sdk: docker
 app_port: 7860
 ---
@@ -83,9 +86,9 @@ app_port: 7860
 5. In Space Settings, add runtime secrets/variables:
 
 ```bash
-OPENAI_API_KEY=sk-your-key
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-3.5-flash
 APP_API_KEY=your-private-access-code
-OPENAI_MODEL=gpt-5.5
 PUBLIC_DEMO_ENABLED=true
 PUBLIC_DEMO_DAILY_LIMIT=10
 DEMO_MAX_INPUT_CHARS=12000
@@ -101,6 +104,28 @@ For this project, start with Render. It matches the existing `render.yaml`, give
 
 Use Hugging Face Spaces if you want to present it as an AI demo portfolio project.
 
-## Cost Note
+## Gemini Free Tier Note
 
-The hosting can be free, but OpenAI API calls are billed by OpenAI unless your account has trial credits. Public demo mode only limits usage; it does not make the model calls free.
+Gemini API currently has a free tier for developers and small projects, with free input and output tokens for supported models. Free tier access is still limited by model availability and rate limits, and Google says free-tier content can be used to improve their products.
+
+For a public demo, keep:
+
+```bash
+PUBLIC_DEMO_DAILY_LIMIT=3
+```
+
+or another low number until you know the traffic pattern.
+
+## Gemini Quota Or Rate Limit Error
+
+If the app returns a Gemini quota/rate-limit error, the problem is usually not Render and not the FastAPI code. The Gemini API key cannot serve more requests at the moment.
+
+Check these items:
+
+1. Confirm `GEMINI_API_KEY` is valid and belongs to the project you expect.
+2. Check Gemini API rate limits/quota in Google AI Studio or Google Cloud.
+3. Wait for free tier quota to reset, reduce public demo traffic, or enable billing for higher usage.
+4. If you created a new API key, update `GEMINI_API_KEY` in Render Environment and redeploy.
+5. Keep `PUBLIC_DEMO_DAILY_LIMIT` low while testing publicly.
+
+The app catches this upstream error and shows a readable message in the web UI.

@@ -1,6 +1,6 @@
 from app.prompts import JD_NORMALIZER_SYSTEM_PROMPT
 from app.schemas import JDNormalizeRequest, NormalizedJobDescription
-from app.services.openai_client import parse_with_openai
+from app.services.gemini_client import parse_with_gemini
 from app.services.source_loader import clean_text, ensure_text_within_limit, fetch_url_text
 from starlette.concurrency import run_in_threadpool
 
@@ -34,7 +34,7 @@ Raw job description input:
 """
 
     normalized = await run_in_threadpool(
-        parse_with_openai,
+        parse_with_gemini,
         system_prompt=JD_NORMALIZER_SYSTEM_PROMPT,
         user_prompt=user_prompt,
         output_model=NormalizedJobDescription,
