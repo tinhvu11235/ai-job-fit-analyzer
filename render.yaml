@@ -1,6 +1,10 @@
 services:
   - type: web
+<<<<<<< HEAD
+    name: ai-job-fit-analyzer-api
+=======
     name: cv-fit-analyst-agent-api
+>>>>>>> 1abd64238dd59fa1eea4d5d339a8a961b005c144
     runtime: docker
     plan: free
     region: singapore
@@ -8,16 +12,41 @@ services:
     envVars:
       - key: ENV
         value: production
+<<<<<<< HEAD
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
+      - key: GEMINI_RESPONSE_SCHEMA_ENABLED
+        value: false
+      - key: REQUEST_TIMEOUT_SECONDS
+        value: 120
+      - key: RATE_LIMIT_PER_MINUTE
+        value: 20
+=======
       - key: GEMINI_MODEL
         value: gemini-3.5-flash
       - key: RATE_LIMIT_PER_MINUTE
         value: 30
+>>>>>>> 1abd64238dd59fa1eea4d5d339a8a961b005c144
       - key: PUBLIC_DEMO_ENABLED
         value: true
       - key: PUBLIC_DEMO_DAILY_LIMIT
         value: 10
       - key: DEMO_MAX_INPUT_CHARS
+<<<<<<< HEAD
+        value: 10000
+      - key: LOCAL_ANALYSIS_FALLBACK_ENABLED
+        value: false
+      - key: JOB_BROWSER_CRAWLER_ENABLED
+        value: true
+      - key: JOB_BROWSER_TIMEOUT_SECONDS
+        value: 20
+      - key: TOPCV_ENABLE_EDGE_CRAWLER
+        value: false
+=======
         value: 12000
+>>>>>>> 1abd64238dd59fa1eea4d5d339a8a961b005c144
       - key: GEMINI_API_KEY
         sync: false
       - key: APP_API_KEY

@@ -1,7 +1,12 @@
 beautifulsoup4==4.12.3
 fastapi==0.115.6
 httpx==0.28.1
+<<<<<<< HEAD
+openai>=2.0.0,<3.0.0
+playwright>=1.49.0,<2.0.0
+=======
 google-genai>=1.0.0,<2.0.0
+>>>>>>> 1abd64238dd59fa1eea4d5d339a8a961b005c144
 pydantic==2.10.4
 pydantic-settings==2.7.0
 pypdf==5.1.0

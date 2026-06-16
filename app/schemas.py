@@ -9,6 +9,10 @@ Recommendation = Literal["Apply Now", "Maybe", "Not Recommended"]
 WorkMode = Literal["onsite", "hybrid", "remote", "unknown"]
 EmploymentType = Literal["full-time", "part-time", "internship", "contract", "unknown"]
 MatchStrength = Literal["Strong", "Partial", "Weak"]
+<<<<<<< HEAD
+JobSource = Literal["topcv", "joboko", "vietnamworks", "glints", "itviec"]
+=======
+>>>>>>> 1abd64238dd59fa1eea4d5d339a8a961b005c144
 
 
 class JDNormalizeRequest(BaseModel):
@@ -142,3 +146,163 @@ class HealthResponse(BaseModel):
     service: str
     environment: str
 
+<<<<<<< HEAD
+
+class ClientRuntimeResponse(BaseModel):
+    environment: str
+    llm_provider: str
+    llm_configured: bool
+    public_demo_enabled: bool
+    private_api_key_required: bool
+    local_analysis_fallback_enabled: bool
+    max_input_chars: int
+    demo_max_input_chars: int
+
+
+class TopCVJobSearchRequest(BaseModel):
+    keyword: str = Field(min_length=2, max_length=120)
+    location: str | None = Field(default=None, max_length=80)
+    cv_text: str | None = Field(default=None, max_length=12000)
+    page: int = Field(default=1, ge=1, le=5)
+    limit: int = Field(default=8, ge=1, le=20)
+    analyze_results: bool = False
+    analyze_limit: int = Field(default=3, ge=0, le=6)
+    user_preferences: str | None = Field(default=None, max_length=2000)
+    output_language: str = Field(default="vi")
+
+    @field_validator("keyword", "location", "cv_text", "user_preferences")
+    @classmethod
+    def strip_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        value = value.strip()
+        return value or None
+
+
+class JobSearchRequest(BaseModel):
+    keyword: str = Field(min_length=2, max_length=120)
+    location: str | None = Field(default=None, max_length=80)
+    sources: list[JobSource] = Field(default_factory=lambda: ["topcv"])
+    cv_text: str | None = Field(default=None, max_length=12000)
+    page: int = Field(default=1, ge=1, le=5)
+    limit: int = Field(default=8, ge=1, le=20)
+    analyze_results: bool = False
+    analyze_limit: int = Field(default=3, ge=0, le=6)
+    user_preferences: str | None = Field(default=None, max_length=2000)
+    output_language: str = Field(default="vi")
+
+    @field_validator("keyword", "location", "cv_text", "user_preferences")
+    @classmethod
+    def strip_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        value = value.strip()
+        return value or None
+
+    @field_validator("sources")
+    @classmethod
+    def normalize_sources(cls, value: list[JobSource]) -> list[JobSource]:
+        unique_sources = list(dict.fromkeys(value or ["topcv"]))
+        return unique_sources or ["topcv"]
+
+
+class TopCVJobResult(BaseModel):
+    source: Literal["topcv"] = "topcv"
+    title: str
+    company_name: str | None = None
+    location: str | None = None
+    salary: str | None = None
+    url: str
+    snippet: str | None = None
+    fit_score: int = Field(default=0, ge=0, le=100)
+    fit_reasons: list[str] = []
+    analysis_status: Literal["not_requested", "ready", "failed"] = "not_requested"
+    analysis_error: str | None = None
+    detail_text: str | None = None
+    normalized_job_description: NormalizedJobDescription | None = None
+    analysis: FitAnalysisResponse | None = None
+
+
+class JobResult(BaseModel):
+    source: JobSource
+    source_label: str
+    title: str
+    company_name: str | None = None
+    location: str | None = None
+    salary: str | None = None
+    url: str
+    snippet: str | None = None
+    fit_score: int = Field(default=0, ge=0, le=100)
+    fit_reasons: list[str] = Field(default_factory=list)
+    analysis_status: Literal["not_requested", "ready", "failed"] = "not_requested"
+    analysis_error: str | None = None
+    detail_text: str | None = None
+    normalized_job_description: NormalizedJobDescription | None = None
+    analysis: FitAnalysisResponse | None = None
+
+
+class TopCVJobSearchResponse(BaseModel):
+    source: Literal["topcv"] = "topcv"
+    query: str
+    suggested_keywords: list[str] = []
+    search_url: str
+    results: list[TopCVJobResult]
+    warnings: list[str]
+
+
+class JobSearchResponse(BaseModel):
+    source: Literal["multi"] = "multi"
+    sources: list[JobSource]
+    query: str
+    suggested_keywords: list[str] = Field(default_factory=list)
+    search_url: str
+    search_urls: dict[str, str] = Field(default_factory=dict)
+    results: list[JobResult]
+    warnings: list[str]
+
+
+class TopCVJobRecommendRequest(BaseModel):
+    cv_text: str = Field(min_length=20, max_length=12000)
+    location: str | None = Field(default=None, max_length=80)
+    page: int = Field(default=1, ge=1, le=5)
+    limit: int = Field(default=8, ge=1, le=20)
+    analyze_results: bool = False
+    analyze_limit: int = Field(default=3, ge=0, le=6)
+    user_preferences: str | None = Field(default=None, max_length=2000)
+    output_language: str = Field(default="vi")
+
+    @field_validator("cv_text", "location", "user_preferences")
+    @classmethod
+    def strip_recommend_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        value = value.strip()
+        return value or None
+
+
+class JobRecommendRequest(BaseModel):
+    cv_text: str = Field(min_length=20, max_length=12000)
+    location: str | None = Field(default=None, max_length=80)
+    sources: list[JobSource] = Field(default_factory=lambda: ["topcv"])
+    page: int = Field(default=1, ge=1, le=5)
+    limit: int = Field(default=8, ge=1, le=20)
+    analyze_results: bool = False
+    analyze_limit: int = Field(default=3, ge=0, le=6)
+    user_preferences: str | None = Field(default=None, max_length=2000)
+    output_language: str = Field(default="vi")
+
+    @field_validator("cv_text", "location", "user_preferences")
+    @classmethod
+    def strip_recommend_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        value = value.strip()
+        return value or None
+
+    @field_validator("sources")
+    @classmethod
+    def normalize_sources(cls, value: list[JobSource]) -> list[JobSource]:
+        unique_sources = list(dict.fromkeys(value or ["topcv"]))
+        return unique_sources or ["topcv"]
+=======
+>>>>>>> 1abd64238dd59fa1eea4d5d339a8a961b005c144
